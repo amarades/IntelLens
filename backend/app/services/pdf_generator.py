@@ -209,6 +209,7 @@ class PDFGeneratorService:
                 story.append(Spacer(1, 10))
 
             # ----------------- 4. SWOT ANALYSIS -----------------
+            story.append(PageBreak())
             story.append(Paragraph("Strategic SWOT Framework", self.h1_style))
             swot_data = [
                 [
@@ -248,6 +249,7 @@ class PDFGeneratorService:
             story.append(Spacer(1, 20))
 
             # ----------------- 5. PAIN POINTS -----------------
+            story.append(PageBreak())
             story.append(Paragraph("Pain Points & Operational Analysis", self.h1_style))
             story.append(Paragraph("<b>Target Customer Pain Points Resolved:</b>", self.h2_style))
             for cpp in data.pain_points.customer_pain_points:
@@ -261,6 +263,7 @@ class PDFGeneratorService:
 
             # ----------------- 6. COMPETITIVE LANDSCAPE -----------------
             if data.competitors:
+                story.append(PageBreak())
                 story.append(Paragraph("Competitive Landscape", self.h1_style))
                 for comp in data.competitors:
                     story.append(Paragraph(f"{comp.name} (Overlap Score: {comp.overlap_score}%)", self.h2_style))

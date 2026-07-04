@@ -5,11 +5,13 @@ from pydantic import Field
 from dotenv import load_dotenv
 
 # Force load local .env variables
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+config_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.abspath(os.path.join(config_dir, "..", ".."))
+load_dotenv(os.path.join(backend_dir, ".env"))
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+        env_file=os.path.join(backend_dir, ".env"),
         env_file_encoding="utf-8",
         extra="ignore"
     )

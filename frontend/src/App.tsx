@@ -1,35 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { startResearch, getResearchStreamUrl, getResearchStatus, getDownloadReportUrl } from "./services/api";
 import type { ResearchResult } from "./services/api";
 import { CrawlProgress } from "./components/CrawlProgress";
 import { ResearchDashboard } from "./components/ResearchDashboard";
 import { ChatInterface } from "./components/ChatInterface";
-import { Plus, Zap, Send, AlertCircle, Compass, MessageSquare, ArrowRight, Bot } from "lucide-react";
+import {
+  Plus, Zap, Send, AlertCircle, Compass, MessageSquare,
+  Bot, Settings, ChevronRight, Search, Scan
+} from "lucide-react";
 
-const QUICK_SEARCHES = ["notion.so", "Figma", "Linear", "Vercel", "Stripe", "Anthropic"];
+const QUICK_SEARCHES = [
+  { label: "notion.so", icon: "📝" },
+  { label: "Stripe", icon: "💳" },
+  { label: "Figma", icon: "🎨" },
+  { label: "Linear", icon: "📐" },
+  { label: "Vercel", icon: "▲" },
+  { label: "Anthropic", icon: "🤖" },
+];
 
 const STEPS = [
-  { n: 1, label: "Enter a company name or URL" },
-  { n: 2, label: "Serper.dev searches and crawls it" },
-  { n: 3, label: "OpenRouter AI generates insights" },
-  { n: 4, label: "Download a professional PDF report" },
+  { n: "01", label: "Enter company name or URL" },
+  { n: "02", label: "Crawler maps the domain tree" },
+  { n: "03", label: "AI synthesizes SWOT & pain points" },
+  { n: "04", label: "PDF report generated instantly" },
 ];
 
 export function App() {
-  // Form state
   const [searchInput, setSearchInput] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantEmail, setApplicantEmail] = useState("");
   const [discordToken, setDiscordToken] = useState(() => localStorage.getItem("intel_discord_token") || "");
   const [discordChannel, setDiscordChannel] = useState(() => localStorage.getItem("intel_discord_channel") || "");
-
-  // Config sidebar state
   const [sidebarTab, setSidebarTab] = useState<"api" | "discord">("api");
-  const [openRouterKey, setOpenRouterKey] = useState(() => localStorage.getItem("intel_or_key") || "");
-  const [serperKey, setSerperKey] = useState(() => localStorage.getItem("intel_serper_key") || "");
   const [configSaved, setConfigSaved] = useState(false);
-
-  // Research flow state
   const [taskId, setTaskId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("IDLE");
   const [progress, setProgress] = useState<number>(0);
@@ -37,10 +40,16 @@ export function App() {
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "chat">("dashboard");
+  const [isTyping, setIsTyping] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (status === "IDLE") {
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [status]);
 
   const handleSaveConfig = () => {
-    localStorage.setItem("intel_or_key", openRouterKey.trim());
-    localStorage.setItem("intel_serper_key", serperKey.trim());
     localStorage.setItem("intel_discord_token", discordToken.trim());
     localStorage.setItem("intel_discord_channel", discordChannel.trim());
     setConfigSaved(true);
@@ -54,16 +63,12 @@ export function App() {
     setLogs([]);
     setProgress(0);
     setStatus("PENDING");
-
-    // Detect if it's a URL or company name
-    const isUrl = query.startsWith("http") || query.includes(".");
+    const isUrl = query.startsWith("http") || (query.includes(".") && !query.includes(" "));
     const companyName = isUrl ? undefined : query;
     const urlVal = isUrl ? (query.startsWith("http") ? query : `https://${query}`) : undefined;
-
     try {
       const response = await startResearch(
-        companyName,
-        urlVal,
+        companyName, urlVal,
         applicantName.trim() || undefined,
         applicantEmail.trim() || undefined,
         discordToken.trim() || undefined,
@@ -71,7 +76,6 @@ export function App() {
       );
       const newTaskId = response.task_id;
       setTaskId(newTaskId);
-
       const eventSource = new EventSource(getResearchStreamUrl(newTaskId));
       eventSource.onmessage = async (event) => {
         try {
@@ -87,7 +91,7 @@ export function App() {
             eventSource.close();
             setError(data.message || "An unexpected error occurred.");
           }
-        } catch (err) { console.error("SSE parse error", err); }
+        } catch { /* */ }
       };
       eventSource.onerror = () => {
         eventSource.close();
@@ -106,14 +110,9 @@ export function App() {
   };
 
   const handleReset = () => {
-    setTaskId(null);
-    setStatus("IDLE");
-    setProgress(0);
-    setLogs([]);
-    setResult(null);
-    setError(null);
-    setSearchInput("");
-    setActiveTab("dashboard");
+    setTaskId(null); setStatus("IDLE"); setProgress(0);
+    setLogs([]); setResult(null); setError(null);
+    setSearchInput(""); setActiveTab("dashboard");
   };
 
   const handleDownloadPdf = () => {
@@ -124,276 +123,311 @@ export function App() {
   const isActive = status !== "IDLE";
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans">
+    <div className="flex h-screen overflow-hidden relative" style={{ background: "#070b14" }}>
+      {/* Aurora ambient glow */}
+      <div className="aurora-bg" />
+
+      {/* Grid texture */}
+      <div className="fixed inset-0 grid-bg opacity-100 pointer-events-none z-0" />
 
       {/* ─── LEFT SIDEBAR ─── */}
-      <aside className="w-72 flex-shrink-0 bg-[#111111] border-r border-white/[0.06] flex flex-col overflow-y-auto">
+      <aside className="relative z-10 w-64 flex-shrink-0 flex flex-col border-r"
+        style={{ background: "rgba(10,14,23,0.9)", borderColor: "rgba(255,255,255,0.06)" }}>
 
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/[0.06]">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <Zap size={16} className="text-white" />
+        {/* Logo area */}
+        <div className="px-5 pt-6 pb-5">
+          <div className="flex items-center gap-3 mb-6">
+            {/* Animated logo mark */}
+            <div className="relative h-9 w-9">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 opacity-20 blur-md animate-pulse" />
+              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-violet-700 flex items-center justify-center shadow-xl">
+                <Zap size={15} className="text-white" strokeWidth={2.5} />
+              </div>
             </div>
             <div>
-              <div className="text-sm font-bold text-white tracking-tight">IntelLens</div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-medium">Company Intelligence</div>
+              <div className="text-sm font-bold tracking-tight text-white">IntelLens</div>
+              <div style={{ fontSize: "9px", letterSpacing: "0.15em", color: "#475569" }} className="uppercase font-semibold">Intelligence Engine</div>
             </div>
           </div>
-        </div>
 
-        {/* New Research Button */}
-        <div className="px-4 py-4">
-          <button
-            onClick={handleReset}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-sm font-medium text-slate-300 transition-all cursor-pointer"
-          >
-            <Plus size={15} />
+          {/* New Research button */}
+          <button onClick={handleReset}
+            className="w-full flex items-center gap-2 py-2.5 px-3.5 rounded-lg text-xs font-semibold text-slate-300 border transition-all cursor-pointer group"
+            style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(59,130,246,0.4)"; (e.currentTarget as HTMLElement).style.color = "#93c5fd"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = ""; }}>
+            <Plus size={13} />
             New Research
+            <ChevronRight size={12} className="ml-auto opacity-40" />
           </button>
         </div>
 
-        {/* Config Tabs */}
-        <div className="px-4 pb-3">
-          <div className="flex rounded-lg bg-white/[0.04] p-0.5 gap-0.5">
-            <button
-              onClick={() => setSidebarTab("api")}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${sidebarTab === "api" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"}`}
-            >
-              API
-            </button>
-            <button
-              onClick={() => setSidebarTab("discord")}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${sidebarTab === "discord" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"}`}
-            >
-              DISCORD
-            </button>
+        {/* Divider */}
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.05)" }} />
+
+        {/* Config tabs */}
+        <div className="px-4 pt-4 pb-3">
+          <div className="flex rounded-lg p-0.5 gap-0.5" style={{ background: "rgba(255,255,255,0.04)" }}>
+            {(["api", "discord"] as const).map(tab => (
+              <button key={tab} onClick={() => setSidebarTab(tab)}
+                className="flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all cursor-pointer uppercase tracking-wide"
+                style={{
+                  background: sidebarTab === tab ? "rgba(255,255,255,0.09)" : "transparent",
+                  color: sidebarTab === tab ? "#e2e8f0" : "#64748b"
+                }}>
+                {tab === "discord" ? "⚡ " : "🔑 "}{tab}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Config Content */}
-        <div className="px-4 flex-1 space-y-4">
+        {/* Config fields */}
+        <div className="px-4 flex-1 overflow-y-auto space-y-4 pb-4">
           {sidebarTab === "api" ? (
             <>
+              {[
+                { label: "OpenRouter Key", placeholder: "sk-or-v1-...", type: "password" },
+                { label: "Serper.dev Key", placeholder: "Your Serper key...", type: "password" },
+              ].map(field => (
+                <div key={field.label} className="space-y-1.5">
+                  <label style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#475569" }} className="uppercase font-bold">
+                    {field.label}
+                  </label>
+                  <input type={field.type} placeholder={field.placeholder}
+                    className="w-full rounded-lg px-3 py-2.5 text-xs text-white input-glow transition-all"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#e2e8f0" }}
+                  />
+                </div>
+              ))}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">OpenRouter API Key</label>
-                <input
-                  type="password"
-                  placeholder="sk-or-v1-..."
-                  value={openRouterKey}
-                  onChange={(e) => setOpenRouterKey(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Serper.dev API Key</label>
-                <input
-                  type="password"
-                  placeholder="Your Serper key..."
-                  value={serperKey}
-                  onChange={(e) => setSerperKey(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">AI Model</label>
-                <select className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500/50 transition-colors appearance-none cursor-pointer">
-                  <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  <option value="anthropic/claude-3.5-sonnet">Claude Sonnet 4.5</option>
-                  <option value="openai/gpt-4o">GPT-4o</option>
+                <label style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#475569" }} className="uppercase font-bold">AI Model</label>
+                <select className="w-full rounded-lg px-3 py-2.5 text-xs text-white cursor-pointer appearance-none"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <option>Gemini 2.5 Flash</option>
+                  <option>Claude Sonnet 4.5</option>
+                  <option>GPT-4o</option>
                 </select>
               </div>
             </>
           ) : (
             <>
-              <div className="p-3 bg-violet-500/10 border border-violet-500/20 rounded-lg">
-                <div className="text-xs font-bold text-violet-300 mb-1 flex items-center gap-1.5">
-                  <Bot size={12} />
-                  Discord Bot Integration
+              {/* Discord info banner */}
+              <div className="rounded-lg p-3 relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, rgba(88,101,242,0.15), rgba(59,130,246,0.08))", border: "1px solid rgba(88,101,242,0.25)" }}>
+                <div className="flex items-start gap-2">
+                  <Bot size={13} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold text-blue-300 mb-1">Auto-Delivery</div>
+                    <p style={{ fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>
+                      Completed reports are sent directly to your Discord channel as a PDF attachment.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">After research completes, the report auto-sends to your configured channel.</p>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Bot Token</label>
-                <input
-                  type="password"
-                  placeholder="Bot token..."
-                  value={discordToken}
-                  onChange={(e) => setDiscordToken(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Channel ID</label>
-                <input
-                  type="text"
-                  placeholder="000000000000000000"
-                  value={discordChannel}
-                  onChange={(e) => setDiscordChannel(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
-                />
-              </div>
-              <div className="space-y-1.5 pt-1">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Applicant Details</div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-500">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Your full name"
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+              {[
+                { label: "Bot Token", placeholder: "Bot token...", type: "password", val: discordToken, set: setDiscordToken },
+                { label: "Channel ID", placeholder: "000000000000000000", type: "text", val: discordChannel, set: setDiscordChannel },
+              ].map(field => (
+                <div key={field.label} className="space-y-1.5">
+                  <label style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#475569" }} className="uppercase font-bold">{field.label}</label>
+                  <input type={field.type} placeholder={field.placeholder} value={field.val}
+                    onChange={e => field.set(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2.5 text-xs text-white input-glow transition-all"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-500">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="email@example.com"
-                    value={applicantEmail}
-                    onChange={(e) => setApplicantEmail(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/[0.07] rounded-lg px-3 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+              ))}
+              <div style={{ height: "1px", background: "rgba(255,255,255,0.05)" }} />
+              <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "#475569" }} className="uppercase font-bold">Applicant Details</div>
+              {[
+                { label: "Full Name", placeholder: "Your full name", type: "text", val: applicantName, set: setApplicantName },
+                { label: "Email Address", placeholder: "email@example.com", type: "email", val: applicantEmail, set: setApplicantEmail },
+              ].map(field => (
+                <div key={field.label} className="space-y-1.5">
+                  <label style={{ fontSize: "9px", color: "#475569" }}>{field.label}</label>
+                  <input type={field.type} placeholder={field.placeholder} value={field.val}
+                    onChange={e => field.set(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2.5 text-xs text-white input-glow transition-all"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
                   />
                 </div>
-              </div>
+              ))}
             </>
           )}
 
-          {/* Save Config Button */}
-          <button
-            onClick={handleSaveConfig}
-            className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${configSaved ? "bg-emerald-600 text-white" : "bg-[#F2C94C] hover:bg-[#e5bc42] text-black"}`}
-          >
-            {configSaved ? "✓ Saved!" : "Save Configuration"}
+          {/* Save button */}
+          <button onClick={handleSaveConfig}
+            className="w-full py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+            style={{
+              background: configSaved ? "rgba(16,185,129,0.15)" : "rgba(59,130,246,0.15)",
+              border: configSaved ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(59,130,246,0.35)",
+              color: configSaved ? "#6ee7b7" : "#93c5fd"
+            }}>
+            {configSaved ? "✓ Saved" : "Save Configuration"}
           </button>
         </div>
 
-        {/* How it works */}
-        <div className="px-4 py-5 border-t border-white/[0.06] space-y-3">
-          <div className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest">How it works</div>
+        {/* Steps */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }} className="px-4 py-4 space-y-3">
+          <div style={{ fontSize: "9px", letterSpacing: "0.14em", color: "#334155" }} className="uppercase font-bold">How it works</div>
           {STEPS.map((step) => (
             <div key={step.n} className="flex items-start gap-2.5">
-              <span className="text-[10px] text-[#F2C94C] font-bold tabular-nums mt-0.5">{step.n}</span>
-              <span className="text-[11px] text-slate-400 leading-relaxed">{step.label}</span>
+              <span className="font-mono text-[10px] font-bold mt-0.5 flex-shrink-0" style={{ color: "#3b82f6" }}>{step.n}</span>
+              <span style={{ fontSize: "11px", color: "#475569", lineHeight: 1.5 }}>{step.label}</span>
             </div>
           ))}
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-white/[0.06]">
-          <div className="text-[10px] text-slate-600 uppercase tracking-widest text-center">
-            OpenRouter · Serper · jsPDF
-          </div>
         </div>
       </aside>
 
       {/* ─── RIGHT MAIN WORKSPACE ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
 
-        {/* Workspace Header */}
-        <header className="flex items-center justify-between px-8 py-4 border-b border-white/[0.06] flex-shrink-0">
+        {/* Top nav strip */}
+        <header className="flex items-center justify-between px-8 py-3.5 flex-shrink-0"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,11,20,0.6)", backdropFilter: "blur(8px)" }}>
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-white">Company Research</h1>
-            <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <Scan size={14} className="text-blue-400" />
+            <span className="text-sm font-semibold text-slate-200">Company Research</span>
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot" />
               LIVE
             </span>
           </div>
           {isActive && (
-            <button
-              onClick={handleReset}
-              className="text-[11px] text-slate-500 hover:text-slate-300 border border-white/[0.07] hover:border-white/20 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-            >
-              New Research
+            <button onClick={handleReset}
+              className="text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5"
+              style={{ color: "#64748b" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#64748b"; }}>
+              <Plus size={12} /> New Research
             </button>
           )}
         </header>
 
-        {/* ─── IDLE STATE: Hero + Bottom Search Bar ─── */}
+        {/* ── IDLE HERO ── */}
         {status === "IDLE" && !result && (
-          <div className="flex-1 flex flex-col">
-            {/* Hero */}
-            <div className="flex-1 flex flex-col items-center justify-center px-12 text-center space-y-6">
-              <div className="text-[11px] font-bold text-[#F2C94C] uppercase tracking-[0.2em]">AI-Powered Intelligence</div>
-              <h2 className="text-5xl md:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-                Know any company<br />in minutes.
-              </h2>
-              <p className="text-slate-400 text-base max-w-md leading-relaxed">
-                Enter a company name or website URL to get AI-powered insights, competitor analysis, pain points, and a professional PDF report.
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Hero section */}
+            <div className="flex-1 flex flex-col items-center justify-center px-12 text-center fade-up">
+              {/* Eyebrow tag */}
+              <div className="mb-6 flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold"
+                style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "#60a5fa", letterSpacing: "0.08em" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 pulse-dot" />
+                AI-POWERED INTELLIGENCE
+              </div>
+
+              {/* Main headline */}
+              <h1 className="text-5xl md:text-6xl font-black leading-[1.05] mb-5 tracking-tight"
+                style={{ background: "linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                Decode any company<br />
+                <span style={{ background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  in minutes.
+                </span>
+              </h1>
+
+              {/* Subtext */}
+              <p className="text-base max-w-md mb-8 leading-relaxed" style={{ color: "#64748b" }}>
+                Deep-crawl any domain. Uncover SWOT analysis, tech stacks, pain points, and competitor maps with one search.
               </p>
 
-              {/* Quick search tags */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              {/* Quick-search tags */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
                 {QUICK_SEARCHES.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => { setSearchInput(tag); launchResearch(tag); }}
-                    className="px-3.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 hover:bg-white/5 text-xs text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
-                  >
-                    {tag}
+                  <button key={tag.label}
+                    onClick={() => { setSearchInput(tag.label); launchResearch(tag.label); }}
+                    className="research-tag flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#64748b" }}>
+                    <span>{tag.icon}</span> {tag.label}
                   </button>
                 ))}
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-lg px-4 py-2.5">
+                <div className="flex items-center gap-2 text-xs px-4 py-2.5 rounded-lg mt-2"
+                  style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
                   <AlertCircle size={13} />
                   {error}
                 </div>
               )}
             </div>
 
-            {/* Floating Bottom Search Bar */}
-            <div className="px-8 pb-6 flex-shrink-0">
-              <div className="text-center text-[10px] text-slate-600 mb-3 uppercase tracking-widest">
+            {/* Floating bottom search */}
+            <div className="px-8 pb-8 flex-shrink-0">
+              <div style={{ fontSize: "10px", letterSpacing: "0.1em", color: "#1e293b", textAlign: "center" }} className="mb-3 uppercase font-semibold">
                 — Configure API keys in the sidebar to get started —
               </div>
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Enter a company name (e.g. Aurora Labs) or website URL (e.g. https://aurora.dev)..."
-                  className="w-full bg-[#181818] border border-white/[0.08] hover:border-white/[0.14] focus:border-violet-500/50 rounded-xl px-5 py-4 pr-36 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-2 bottom-2 flex items-center gap-2 px-5 rounded-lg bg-[#F2C94C] hover:bg-[#e5bc42] text-black text-sm font-bold transition-colors cursor-pointer"
-                >
-                  Research
-                  <ArrowRight size={14} />
-                </button>
+              <form onSubmit={handleSearchSubmit} className="search-bar-container relative">
+                {/* Animated glow ring on focus */}
+                <div className="search-glow absolute -inset-px rounded-2xl pointer-events-none"
+                  style={{ background: "linear-gradient(90deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3))", filter: "blur(6px)" }} />
+                <div className="relative flex items-center rounded-2xl overflow-hidden"
+                  style={{ background: "rgba(15,21,35,0.95)", border: "1px solid rgba(255,255,255,0.09)" }}>
+                  <Search size={16} className="ml-5 flex-shrink-0" style={{ color: "#334155" }} />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => { setSearchInput(e.target.value); setIsTyping(e.target.value.length > 0); }}
+                    placeholder="Enter a company name (e.g. Notion) or website URL (e.g. https://stripe.com)..."
+                    className="flex-1 px-4 py-4 text-sm bg-transparent focus:outline-none"
+                    style={{ color: "#e2e8f0" }}
+                  />
+                  <button type="submit"
+                    className="flex items-center gap-2 mx-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer flex-shrink-0"
+                    style={{
+                      background: isTyping ? "linear-gradient(135deg, #3b82f6, #8b5cf6)" : "rgba(255,255,255,0.06)",
+                      color: isTyping ? "#fff" : "#475569",
+                      boxShadow: isTyping ? "0 0 20px rgba(59,130,246,0.3)" : "none"
+                    }}>
+                    <Send size={13} />
+                    Research
+                  </button>
+                </div>
               </form>
-              <div className="text-center text-[10px] text-slate-700 mt-2 uppercase tracking-widest">
-                Enter to Research · Shift+Enter for New Line
+              <div style={{ fontSize: "10px", color: "#1e293b", textAlign: "center", marginTop: "8px", letterSpacing: "0.05em" }}>
+                ENTER to research · SHIFT+ENTER for new line
               </div>
             </div>
           </div>
         )}
 
-        {/* ─── ACTIVE STATE: Crawl terminal ─── */}
+        {/* ── ACTIVE CRAWLING STATE ── */}
         {isActive && !result && (
-          <div className="flex-1 flex flex-col overflow-hidden px-8 py-6 space-y-5">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold text-white">Target Synthesis Active</h2>
-              <p className="text-sm text-slate-500">Wait while our crawler parses core pages and queries market indexes.</p>
-            </div>
-            <div className="flex-1 overflow-auto">
-              <CrawlProgress logs={logs} progress={progress} status={status} />
-            </div>
-            {error && (
-              <div className="space-y-3 flex-shrink-0">
-                <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-xl text-rose-400 text-sm flex items-center gap-3">
-                  <AlertCircle size={18} />
-                  <div>
-                    <h5 className="font-semibold text-white">Execution Failed</h5>
-                    <p className="text-xs text-rose-400/90 mt-0.5">{error}</p>
+          <div className="flex-1 flex flex-col px-8 py-7 space-y-5 overflow-hidden fade-up">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                {/* Animated scanner icon */}
+                <div className="relative w-5 h-5">
+                  <div className="absolute inset-0 rounded-full bg-blue-500 opacity-20 animate-ping" />
+                  <div className="relative w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                    <Scan size={10} className="text-white" />
                   </div>
                 </div>
-                <button
-                  onClick={handleReset}
-                  className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 text-sm font-semibold transition-colors cursor-pointer"
-                >
+                <h2 className="text-lg font-bold text-white">Target Synthesis Active</h2>
+              </div>
+              <p className="text-sm ml-7" style={{ color: "#475569" }}>
+                Crawling domain pages and feeding AI context — this takes about 90 seconds.
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-auto min-h-0">
+              <CrawlProgress logs={logs} progress={progress} status={status} />
+            </div>
+
+            {error && (
+              <div className="flex-shrink-0 space-y-3">
+                <div className="p-4 rounded-xl flex items-center gap-3 text-sm"
+                  style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  <AlertCircle size={18} className="text-red-400 flex-shrink-0" />
+                  <div>
+                    <h5 className="font-semibold text-white">Execution Failed</h5>
+                    <p className="text-xs mt-0.5" style={{ color: "#f87171" }}>{error}</p>
+                  </div>
+                </div>
+                <button onClick={handleReset}
+                  className="w-full py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}>
                   Return to Dashboard
                 </button>
               </div>
@@ -401,39 +435,41 @@ export function App() {
           </div>
         )}
 
-        {/* ─── COMPLETED STATE: Dashboard / Chat tabs ─── */}
+        {/* ── COMPLETED RESULT VIEW ── */}
         {result && taskId && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Tabs bar */}
-            <div className="flex items-center justify-between border-b border-white/[0.06] px-8 flex-shrink-0">
+          <div className="flex-1 flex flex-col overflow-hidden fade-up">
+            {/* Tabs */}
+            <div className="flex items-center justify-between px-8 flex-shrink-0"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <div className="flex">
                 {(["dashboard", "chat"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex items-center gap-2 px-4 py-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${activeTab === tab ? "border-violet-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-                  >
-                    {tab === "dashboard" ? <><Compass size={14} /> Strategic Dossier</> : <><MessageSquare size={14} /> Agent Q&A Chat</>}
+                  <button key={tab} onClick={() => setActiveTab(tab)}
+                    className="flex items-center gap-2 px-4 py-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer"
+                    style={{
+                      borderColor: activeTab === tab ? "#3b82f6" : "transparent",
+                      color: activeTab === tab ? "#e2e8f0" : "#475569"
+                    }}>
+                    {tab === "dashboard"
+                      ? <><Compass size={13} /> Strategic Dossier</>
+                      : <><MessageSquare size={13} /> Agent Q&amp;A</>}
                   </button>
                 ))}
               </div>
-              <button
-                onClick={handleReset}
-                className="text-[11px] text-slate-600 hover:text-slate-300 transition-colors flex items-center gap-1 cursor-pointer"
-              >
+              <button onClick={handleReset}
+                className="flex items-center gap-1.5 text-[11px] font-medium transition-all cursor-pointer"
+                style={{ color: "#334155" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#64748b"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}>
                 <Plus size={12} /> New Research
               </button>
             </div>
 
-            {/* Tab content */}
+            {/* Content */}
             <div className="flex-1 overflow-y-auto px-8 py-6">
-              {activeTab === "dashboard" ? (
-                <ResearchDashboard data={result} onDownloadPdf={handleDownloadPdf} />
-              ) : (
-                <div className="max-w-3xl mx-auto">
-                  <ChatInterface taskId={taskId} />
-                </div>
-              )}
+              {activeTab === "dashboard"
+                ? <ResearchDashboard data={result} onDownloadPdf={handleDownloadPdf} />
+                : <div className="max-w-3xl mx-auto"><ChatInterface taskId={taskId} /></div>
+              }
             </div>
           </div>
         )}

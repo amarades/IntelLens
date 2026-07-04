@@ -40,8 +40,7 @@ class AIService:
         Processes crawled pages and outputs a structured Pydantic ResearchResult.
         """
         if not self.api_key:
-            logger.warning("OpenRouter API key is missing. Returning stub research details.")
-            return self._generate_stub_result(target_company, target_url)
+            raise AIServiceError("OpenRouter API key is missing. Unable to generate AI research report.")
 
         context_data = self._truncate_context(crawled_pages)
         competitors_context = ", ".join(competitor_links) if competitor_links else "None directly specified. Discover them."
@@ -199,23 +198,3 @@ Ensure that all lists (strengths, weaknesses, etc.) contain between 3 to 5 high-
         except Exception as e:
             logger.error(f"Chat execution failed: {str(e)}")
             return "An error occurred while executing the chat response."
-
-    def _generate_stub_result(self, name: str, url: str) -> ResearchResult:
-        """
-        Fallback stub result for demo when API keys are not supplied.
-        """
-        return ResearchResult(
-            company_profile=CompanySummary(
-                name=name,
-                tagline=f"Innovating the space of {url}",
-                detailed_description="This is a stub placeholder description. Please supply your OPENROUTER_API_KEY in backend/.env to synthesize live findings.",
-                industry="Information Technology",
-                estimated_size="Enterprise"
-            ),
-            products_services=[],
-            swot=SwotAnalysis(strengths=[], weaknesses=[], opportunities=[], threats=[]),
-            pain_points=PainPoints(customer_pain_points=[], internal_challenges=[]),
-            competitors=[],
-            technologies=["HTML", "Tailwind CSS"],
-            confidence_score=50.0
-        )

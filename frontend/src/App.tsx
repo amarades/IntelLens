@@ -139,8 +139,8 @@ export function App() {
           <div className="flex items-center gap-3 mb-6">
             {/* Animated logo mark */}
             <div className="relative h-9 w-9">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 opacity-20 blur-md animate-pulse" />
-              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-violet-700 flex items-center justify-center shadow-xl">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 opacity-20 blur-md animate-pulse" />
+              <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center shadow-xl">
                 <Zap size={15} className="text-white" strokeWidth={2.5} />
               </div>
             </div>
@@ -154,7 +154,7 @@ export function App() {
           <button onClick={handleReset}
             className="w-full flex items-center gap-2 py-2.5 px-3.5 rounded-lg text-xs font-semibold text-slate-300 border transition-all cursor-pointer group"
             style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(59,130,246,0.4)"; (e.currentTarget as HTMLElement).style.color = "#93c5fd"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(16,185,129,0.4)"; (e.currentTarget as HTMLElement).style.color = "#6ee7b7"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = ""; }}>
             <Plus size={13} />
             New Research
@@ -258,11 +258,9 @@ export function App() {
           {/* Save button */}
           <button onClick={handleSaveConfig}
             className="w-full py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
-            style={{
-              background: configSaved ? "rgba(16,185,129,0.15)" : "rgba(59,130,246,0.15)",
-              border: configSaved ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(59,130,246,0.35)",
-              color: configSaved ? "#6ee7b7" : "#93c5fd"
-            }}>
+              style={{ background: configSaved ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.12)",
+                border: configSaved ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(20,184,166,0.35)",
+                color: configSaved ? "#6ee7b7" : "#5eead4" }}>
             {configSaved ? "✓ Saved" : "Save Configuration"}
           </button>
         </div>
@@ -272,7 +270,7 @@ export function App() {
           <div style={{ fontSize: "9px", letterSpacing: "0.14em", color: "#334155" }} className="uppercase font-bold">How it works</div>
           {STEPS.map((step) => (
             <div key={step.n} className="flex items-start gap-2.5">
-              <span className="font-mono text-[10px] font-bold mt-0.5 flex-shrink-0" style={{ color: "#3b82f6" }}>{step.n}</span>
+              <span className="font-mono text-[10px] font-bold mt-0.5 flex-shrink-0" style={{ color: "#10b981" }}>{step.n}</span>
               <span style={{ fontSize: "11px", color: "#475569", lineHeight: 1.5 }}>{step.label}</span>
             </div>
           ))}
@@ -284,9 +282,9 @@ export function App() {
 
         {/* Top nav strip */}
         <header className="flex items-center justify-between px-8 py-3.5 flex-shrink-0"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,11,20,0.6)", backdropFilter: "blur(8px)" }}>
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,11,20,0.6)", backdropFilter: "blur(8px)" }}>
           <div className="flex items-center gap-3">
-            <Scan size={14} className="text-blue-400" />
+            <Scan size={14} className="text-emerald-400" />
             <span className="text-sm font-semibold text-slate-200">Company Research</span>
             <span className="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full"
               style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>
@@ -312,8 +310,8 @@ export function App() {
             <div className="flex-1 flex flex-col items-center justify-center px-12 text-center fade-up">
               {/* Eyebrow tag */}
               <div className="mb-6 flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold"
-                style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "#60a5fa", letterSpacing: "0.08em" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 pulse-dot" />
+                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "#6ee7b7", letterSpacing: "0.08em" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot" />
                 AI-POWERED INTELLIGENCE
               </div>
 
@@ -321,7 +319,7 @@ export function App() {
               <h1 className="text-5xl md:text-6xl font-black leading-[1.05] mb-5 tracking-tight"
                 style={{ background: "linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 Decode any company<br />
-                <span style={{ background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                <span style={{ background: "linear-gradient(90deg, #10b981, #14b8a6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   in minutes.
                 </span>
               </h1>
@@ -360,7 +358,7 @@ export function App() {
               <form onSubmit={handleSearchSubmit} className="search-bar-container relative">
                 {/* Animated glow ring on focus */}
                 <div className="search-glow absolute -inset-px rounded-2xl pointer-events-none"
-                  style={{ background: "linear-gradient(90deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3))", filter: "blur(6px)" }} />
+                  style={{ background: "linear-gradient(90deg, rgba(16,185,129,0.3), rgba(20,184,166,0.3))", filter: "blur(6px)" }} />
                 <div className="relative flex items-center rounded-2xl overflow-hidden"
                   style={{ background: "rgba(15,21,35,0.95)", border: "1px solid rgba(255,255,255,0.09)" }}>
                   <Search size={16} className="ml-5 flex-shrink-0" style={{ color: "#334155" }} />
@@ -376,9 +374,9 @@ export function App() {
                   <button type="submit"
                     className="flex items-center gap-2 mx-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer flex-shrink-0"
                     style={{
-                      background: isTyping ? "linear-gradient(135deg, #3b82f6, #8b5cf6)" : "rgba(255,255,255,0.06)",
+                      background: isTyping ? "linear-gradient(135deg, #10b981, #14b8a6)" : "rgba(255,255,255,0.06)",
                       color: isTyping ? "#fff" : "#475569",
-                      boxShadow: isTyping ? "0 0 20px rgba(59,130,246,0.3)" : "none"
+                      boxShadow: isTyping ? "0 0 20px rgba(16,185,129,0.3)" : "none"
                     }}>
                     <Send size={13} />
                     Research
@@ -399,8 +397,8 @@ export function App() {
               <div className="flex items-center gap-2 mb-1">
                 {/* Animated scanner icon */}
                 <div className="relative w-5 h-5">
-                  <div className="absolute inset-0 rounded-full bg-blue-500 opacity-20 animate-ping" />
-                  <div className="relative w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-emerald-500 opacity-20 animate-ping" />
+                  <div className="relative w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center">
                     <Scan size={10} className="text-white" />
                   </div>
                 </div>
@@ -446,7 +444,7 @@ export function App() {
                   <button key={tab} onClick={() => setActiveTab(tab)}
                     className="flex items-center gap-2 px-4 py-3.5 text-xs font-semibold border-b-2 transition-all cursor-pointer"
                     style={{
-                      borderColor: activeTab === tab ? "#3b82f6" : "transparent",
+                      borderColor: activeTab === tab ? "#10b981" : "transparent",
                       color: activeTab === tab ? "#e2e8f0" : "#475569"
                     }}>
                     {tab === "dashboard"

@@ -167,11 +167,12 @@ class CrawlerService:
 
                 # robots.txt validation
                 if rp and not rp.can_fetch(self.user_agent, current_url):
-                    msg = f"Skipping {current_url}: Forbidden by robots.txt"
-                    logger.info(msg)
+                    msg = f"Warning: {current_url} is forbidden by robots.txt"
+                    logger.warning(msg)
                     if log_callback:
                         await log_callback(msg)
-                    continue
+                    if depth > 0: # Only bypass for home page domain, enforce for deep subpages
+                        continue
 
                 msg = f"Crawling URL (Depth {depth}): {current_url}"
                 logger.info(msg)

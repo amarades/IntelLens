@@ -6,7 +6,7 @@ import { ResearchDashboard } from "./components/ResearchDashboard";
 import { ChatInterface } from "./components/ChatInterface";
 import {
   Plus, Zap, Send, AlertCircle, Compass, MessageSquare,
-  Bot, Settings, ChevronRight, Search, Scan
+  Bot, ChevronRight, Search, Scan
 } from "lucide-react";
 
 const QUICK_SEARCHES = [

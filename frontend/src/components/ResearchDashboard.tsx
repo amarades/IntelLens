@@ -1,5 +1,5 @@
 import React from "react";
-import { ResearchResult } from "../services/api";
+import type { ResearchResult } from "../services/api";
 import { TrendingUp, Target, Cpu, Download, ShieldAlert, CheckCircle } from "lucide-react";
 
 interface ResearchDashboardProps {

@@ -2,6 +2,10 @@ import os
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+from dotenv import load_dotenv
+
+# Force load local .env variables
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(

@@ -119,6 +119,7 @@ Ensure that all lists (strengths, weaknesses, etc.) contain between 3 to 5 high-
                 {"role": "user", "content": user_prompt}
             ],
             "temperature": 0.2,
+            "max_tokens": 3000,
             "response_format": {"type": "json_object"}
         }
 
@@ -184,7 +185,8 @@ Ensure that all lists (strengths, weaknesses, etc.) contain between 3 to 5 high-
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": 0.5
+            "temperature": 0.5,
+            "max_tokens": 1500
         }
 
         try:

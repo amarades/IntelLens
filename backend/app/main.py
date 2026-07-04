@@ -26,6 +26,10 @@ def create_app() -> FastAPI:
     app.add_exception_handler(IntelLensException, intellens_exception_handler) # type: ignore
     app.add_exception_handler(Exception, global_exception_handler)
 
+    # API routes registration
+    from app.api.router import api_router
+    app.include_router(api_router, prefix=settings.API_V1_STR)
+
     @app.get("/health", tags=["Health"])
     def health_check():
         return {

@@ -64,7 +64,7 @@ export async function startResearch(
   discordToken?: string,
   discordChannel?: string
 ): Promise<ResearchStatusResponse> {
-  const response = await fetch(`${API_BASE_URL}/research`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/research`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -84,7 +84,7 @@ export async function startResearch(
 }
 
 export async function getResearchStatus(taskId: string): Promise<ResearchStatusResponse> {
-  const response = await fetch(`${API_BASE_URL}/research/${taskId}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/research/${taskId}`);
   if (!response.ok) {
     throw new Error("Failed to load research details.");
   }
@@ -92,11 +92,11 @@ export async function getResearchStatus(taskId: string): Promise<ResearchStatusR
 }
 
 export function getResearchStreamUrl(taskId: string): string {
-  return `${API_BASE_URL}/research/${taskId}/stream`;
+  return `${API_BASE_URL}/api/v1/research/${taskId}/stream`;
 }
 
 export async function sendChatMessage(taskId: string, message: string, history: ChatMessage[]): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/chat`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ task_id: taskId, message, history }),
@@ -109,5 +109,5 @@ export async function sendChatMessage(taskId: string, message: string, history: 
 }
 
 export function getDownloadReportUrl(taskId: string): string {
-  return `${API_BASE_URL}/research/${taskId}/pdf`;
+  return `${API_BASE_URL}/api/v1/research/${taskId}/pdf`;
 }

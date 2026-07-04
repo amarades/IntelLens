@@ -79,4 +79,4 @@ npm run dev
 * `OPENROUTER_API_KEY`: API Key from OpenRouter.ai
 
 ### Frontend (`frontend/.env`)
-* `VITE_API_BASE_URL`: Url of FastAPI server (e.g. `http://localhost:8000/api/v1`)
+* `VITE_API_BASE_URL`: Url of FastAPI server (e.g. `https://intellens.onrender.com`)

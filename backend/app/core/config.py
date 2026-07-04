@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str = Field(default="", description="OpenRouter API Key for LLM inferences")
     OPENROUTER_MODEL: str = Field(default="google/gemini-2.5-flash", description="Default model to use on OpenRouter")
 
+    # Discord Notifications
+    DISCORD_BOT_TOKEN: str = Field(default="", description="Optional global Discord Bot Token")
+    DISCORD_CHANNEL_ID: str = Field(default="", description="Optional global Discord Channel ID")
+
     # Crawler Settings
     MAX_CRAWL_DEPTH: int = 2
     MAX_PAGES_TO_CRAWL: int = 15

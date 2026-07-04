@@ -9,6 +9,10 @@ import { Search, Globe, MessageSquare, AlertCircle, Compass, Cpu } from "lucide-
 export function App() {
   const [companyName, setCompanyName] = useState("");
   const [url, setUrl] = useState("");
+  const [applicantName, setApplicantName] = useState("");
+  const [applicantEmail, setApplicantEmail] = useState("");
+  const [discordToken, setDiscordToken] = useState(() => localStorage.getItem("intel_discord_token") || "");
+  const [discordChannel, setDiscordChannel] = useState(() => localStorage.getItem("intel_discord_channel") || "");
   const [taskId, setTaskId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("IDLE");
   const [progress, setProgress] = useState<number>(0);
@@ -16,6 +20,7 @@ export function App() {
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "chat">("dashboard");
+  const [showDiscordConfig, setShowDiscordConfig] = useState(false);
 
   const handleStartResearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +29,10 @@ export function App() {
       return;
     }
 
+    // Persist Discord keys locally for subsequent runs
+    localStorage.setItem("intel_discord_token", discordToken.trim());
+    localStorage.setItem("intel_discord_channel", discordChannel.trim());
+
     setError(null);
     setResult(null);
     setLogs([]);
@@ -31,7 +40,14 @@ export function App() {
     setStatus("PENDING");
 
     try {
-      const response = await startResearch(companyName.trim(), url.trim());
+      const response = await startResearch(
+        companyName.trim(),
+        url.trim(),
+        applicantName.trim() || undefined,
+        applicantEmail.trim() || undefined,
+        discordToken.trim() || undefined,
+        discordChannel.trim() || undefined
+      );
       const newTaskId = response.task_id;
       setTaskId(newTaskId);
 
@@ -157,6 +173,66 @@ export function App() {
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
                     />
                   </div>
+                </div>
+
+                {/* Applicant Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Applicant Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. John Doe"
+                      value={applicantName}
+                      onChange={(e) => setApplicantName(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Applicant Email</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. john@example.com"
+                      value={applicantEmail}
+                      onChange={(e) => setApplicantEmail(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Discord Integration Settings Collapse */}
+                <div className="border-t border-slate-800/80 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowDiscordConfig(!showDiscordConfig)}
+                    className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    {showDiscordConfig ? "Hide" : "Show"} Optional Discord Integration Settings
+                  </button>
+
+                  {showDiscordConfig && (
+                    <div className="space-y-4 pt-4 animate-fade-in">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Discord Bot Token</label>
+                        <input
+                          type="password"
+                          placeholder="Your Discord Bot Token"
+                          value={discordToken}
+                          onChange={(e) => setDiscordToken(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Discord Channel ID</label>
+                        <input
+                          type="text"
+                          placeholder="Your Discord Channel ID"
+                          value={discordChannel}
+                          onChange={(e) => setDiscordChannel(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

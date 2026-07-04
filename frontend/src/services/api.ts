@@ -56,11 +56,25 @@ export interface ChatMessage {
   content: string;
 }
 
-export async function startResearch(companyName?: string, url?: string): Promise<ResearchStatusResponse> {
+export async function startResearch(
+  companyName?: string,
+  url?: string,
+  applicantName?: string,
+  applicantEmail?: string,
+  discordToken?: string,
+  discordChannel?: string
+): Promise<ResearchStatusResponse> {
   const response = await fetch(`${API_BASE_URL}/research`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ company_name: companyName || null, url: url || null }),
+    body: JSON.stringify({
+      company_name: companyName || null,
+      url: url || null,
+      applicant_name: applicantName || null,
+      applicant_email: applicantEmail || null,
+      discord_token: discordToken || null,
+      discord_channel: discordChannel || null
+    }),
   });
   if (!response.ok) {
     const err = await response.json();

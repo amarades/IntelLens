@@ -19,9 +19,17 @@ router = APIRouter()
 research_tasks: Dict[str, Dict[str, Any]] = {}
 sse_queues: Dict[str, asyncio.Queue] = {}
 
-async def run_async_research_flow(task_id: str, company_name: Optional[str], target_url: Optional[str]):
+async def run_async_research_flow(
+    task_id: str,
+    company_name: Optional[str],
+    target_url: Optional[str],
+    applicant_name: Optional[str] = None,
+    applicant_email: Optional[str] = None,
+    discord_token: Optional[str] = None,
+    discord_channel: Optional[str] = None
+):
     """
-    Background worker orchestrating the multi-step research, crawling, and AI compilation pipeline.
+    Background worker orchestrating the multi-step research, crawling, AI compilation, and Discord delivery.
     """
     task = research_tasks[task_id]
     queue = sse_queues.get(task_id)
@@ -83,6 +91,34 @@ async def run_async_research_flow(task_id: str, company_name: Optional[str], tar
         task["result"] = result
         task["crawled_pages"] = crawled_pages
         task["status"] = "COMPLETED"
+
+        # Generate report and dispatch to Discord if credentials present
+        if applicant_name and applicant_email and (discord_token or settings.DISCORD_BOT_TOKEN):
+            log_and_queue("Initiating automated report transfer to Discord...", 95.0)
+            try:
+                from app.services.pdf_generator import PDFGeneratorService
+                from app.services.discord_service import DiscordService
+                
+                pdf_gen = PDFGeneratorService()
+                pdf_bytes = pdf_gen.generate_report(result)
+                
+                name_clean = (company_name or "Company").replace(" ", "_")
+                filename = f"{name_clean}_report.pdf"
+                
+                discord_client = DiscordService()
+                await discord_client.send_report_notification(
+                    applicant_name=applicant_name,
+                    applicant_email=applicant_email,
+                    company_name=result.company_profile.name,
+                    company_website=url,
+                    pdf_bytes=pdf_bytes,
+                    filename=filename,
+                    bot_token=discord_token,
+                    channel_id=discord_channel
+                )
+            except Exception as e:
+                logger.error(f"Discord report notification dispatch failed: {str(e)}")
+
         log_and_queue("Strategic company report successfully generated!", 100.0)
 
     except Exception as e:
@@ -123,7 +159,11 @@ async def start_company_research(request: ResearchRequest, background_tasks: Bac
         run_async_research_flow,
         task_id=task_id,
         company_name=request.company_name,
-        target_url=request.url
+        target_url=request.url,
+        applicant_name=request.applicant_name,
+        applicant_email=request.applicant_email,
+        discord_token=request.discord_token,
+        discord_channel=request.discord_channel
     )
 
     return research_tasks[task_id]

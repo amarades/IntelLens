@@ -131,7 +131,7 @@ export function App() {
       <div className="fixed inset-0 grid-bg opacity-100 pointer-events-none z-0" />
 
       {/* ─── LEFT SIDEBAR ─── */}
-      <aside className="relative z-10 w-64 flex-shrink-0 flex flex-col border-r"
+      <aside className="hidden lg:flex relative z-10 w-64 flex-shrink-0 flex-col border-r"
         style={{ background: "rgba(10,14,23,0.9)", borderColor: "rgba(255,255,255,0.06)" }}>
 
         {/* Logo area */}

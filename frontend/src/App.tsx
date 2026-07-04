@@ -123,7 +123,7 @@ export function App() {
   const isActive = status !== "IDLE";
 
   return (
-    <div className="flex h-screen overflow-hidden relative" style={{ background: "#070b14" }}>
+    <div className="flex flex-col lg:flex-row min-h-screen relative" style={{ background: "#070b14" }}>
       {/* Aurora ambient glow */}
       <div className="aurora-bg" />
 
@@ -258,9 +258,11 @@ export function App() {
           {/* Save button */}
           <button onClick={handleSaveConfig}
             className="w-full py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
-              style={{ background: configSaved ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.12)",
-                border: configSaved ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(20,184,166,0.35)",
-                color: configSaved ? "#6ee7b7" : "#5eead4" }}>
+            style={{
+              background: configSaved ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.12)",
+              border: configSaved ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(20,184,166,0.35)",
+              color: configSaved ? "#6ee7b7" : "#5eead4"
+            }}>
             {configSaved ? "✓ Saved" : "Save Configuration"}
           </button>
         </div>
@@ -282,7 +284,7 @@ export function App() {
 
         {/* Top nav strip */}
         <header className="flex items-center justify-between px-8 py-3.5 flex-shrink-0"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,11,20,0.6)", backdropFilter: "blur(8px)" }}>
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,11,20,0.6)", backdropFilter: "blur(8px)" }}>
           <div className="flex items-center gap-3">
             <Scan size={14} className="text-emerald-400" />
             <span className="text-sm font-semibold text-slate-200">Company Research</span>
